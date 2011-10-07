@@ -26,9 +26,20 @@ From the dbdeploy website, the project is described as :
 * Unlike dbdeploy, the UNDO section is not mandatory
 * Migrations are run as transactions, so you can not be left in an unstable state
 
+# Installation
+
+* Clone the github repository
+* or for easier installation, use npm:
+
+```
+npm install dbdeploy
+```
+
 # Examples
 
 ### From the CLI
+
+_Note_: In order to run the CLI script, your PATH must contain ./node_modules/db-deploy/bin or you'll have to point directly to the script from the root of your project
 
 ```
 dbdeploy -U username -P password --db database_name -f ./myMigrationsFolder/
