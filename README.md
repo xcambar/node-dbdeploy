@@ -12,6 +12,9 @@ From the dbdeploy website, the project is described as :
 
 > Manages the deployment of numbered change scripts to a SQL database, using a simple table in the database to track applied changes.
 
+# Maturity of the project
+
+It's a work in progress. See the 'Planned enhancements' for further information.
 
 # Requirements
 
@@ -64,10 +67,7 @@ deploy.run();
 
 * Downgrade is not yet fully functional
 * Including or excluding data fixtures by deploying a superset of dmigration scripts
-
-# Caveats
-
-* Only works with node-postgres for now
+* Extend to multiple database adapters (only works with node-postgres)
 
 # License
 
