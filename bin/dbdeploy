@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var deploy = require('deploy');
+var deploy = require('dbdeploy');
 try {
     var program = require('commander');
 } catch (err) {
