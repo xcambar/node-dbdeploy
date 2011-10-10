@@ -6,7 +6,7 @@
     , "web": "https://github.com/xcambar"
     }
   ]
-, "version": "0.5.1"
+, "version": "0.7.0"
 , "repository" :
   { "type" : "git"
   , "url" : "http://github.com/xcambar/node-dbdeploy"

@@ -10,12 +10,13 @@ try {
 
 
 program
-  .version('0.5.0')
+  .version('0.7')
   .option('-d, --db [db]', 'Database name', null)
   .option('-U, --user [user]', 'Database user', null)
   .option('-P, --password [pwd]', 'Password to access the database', null)
   .option('-a, --adapter [adapter]', 'Database adapter/module to load', 'pg')
   .option('-f, --migration-folder [folder]', 'Location of the folder containing the migration files', 'migrations')
+  .option(' --undo', 'Undo the latest migration')
   .option('-s, --silent', 'Disable output')
   .parse(process.argv);
 
@@ -37,6 +38,7 @@ if (program.migrationFolder) {
     }
     deploy.config({migrationFolder: path});
 }
+
 if (program.silent) {
     process.stdout = require('fs').createWriteStream('/dev/null');
 }
@@ -46,4 +48,8 @@ deploy.on('error', function(err) {
     process.exit(255);
 })
 
-deploy.run();
+if (program.undo) {
+    deploy.undo();
+} else {
+    deploy.do();    
+}

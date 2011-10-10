@@ -2,7 +2,8 @@ var util = require('util'),
     events = require('events'),
     fs = require('fs'),
     migrationParser = require('./lib/migrationParser'),
-    _changelog = require('./lib/changelog.js');
+    _changelog = require('./lib/changelog.js'),
+    basename = require('path').basename;
 
 // The config used in common by the adapter and the deploy tool
 var _config = {
@@ -44,6 +45,16 @@ Deploy.prototype.config = function (config) {
 
 Deploy.prototype.changelog = null;
 
+Deploy.prototype.do = function () {
+    this.direction = 'do';
+    this.run();
+}
+
+Deploy.prototype.undo = function () {
+    this.direction = 'undo';
+    this.run();
+}
+
 /**
  * Runs the db migration workflow:
  *  *) Checks the existence of the changelog table
@@ -54,7 +65,6 @@ Deploy.prototype.changelog = null;
  **/
 Deploy.prototype.run = function () {
     var me = this;
-    
     if (!_config.adapter) {
         throw new Error('No adapter specified. Can not run.');
     }
@@ -86,33 +96,39 @@ Deploy.prototype.run = function () {
  * @TODO Implement the downgrade process. Currently, the direction is not taken into account
  * @param direction string 'up' or 'down'
  **/
-Deploy.prototype.applyMigrations = function (direction) {
-    var direction = direction || 'do',
+Deploy.prototype.applyMigrations = function () {
+    var direction = this.direction,
         me = this;
     // Filters through the files in the migration folder and finds the
     // statements that need to be applied to the database
     var _getApplicableMigrations = function (files, latestMigrationFile) {
-        return files
-            .sort()
-            .filter(function () {
-                var _mustBeApplied = (latestMigrationFile === null);
-                return function (name) {
-                    if (latestMigrationFile === name) {
-                        _mustBeApplied = true;
-                        return false;
-                    }
-                    return _mustBeApplied;
-                };
-                }()
-            );
+        if (direction === 'do') {
+            return files
+                .sort()
+                .filter(function () {
+                    var _mustBeApplied = (latestMigrationFile === null);
+                    return function (name) {
+                        if (latestMigrationFile === name) {
+                            _mustBeApplied = !_mustBeApplied;
+                            return false;
+                        }
+                        return _mustBeApplied;
+                    };
+                    }()
+                );
+        } else {
+            return files.sort().reverse().filter(function (name) {
+                return latestMigrationFile === name;
+            });
+        }
     };
     
     // Orders the migrations statements to the specified order,
     // so they can be applied in the right place, at the right time
     var _orderMigrations = function (order, unorderedObj) {
-        var orderedObj = {};
+        var orderedObj = new Array();
         for (var i=0; i < order.length; i++) {
-            orderedObj[order[i]] = unorderedObj[order[i]];
+            orderedObj.push(unorderedObj[order[i]]);
         }
         return orderedObj;
     };
@@ -125,8 +141,9 @@ Deploy.prototype.applyMigrations = function (direction) {
                 throw err;
             }
             files = _getApplicableMigrations(files, latestMigrationFile);
+
             filesRemaining = files.length;
-            fileData = {};
+            var parsedMigrations = {};
             console.log('* Number of migration scripts to apply:', filesRemaining);
             if (filesRemaining === 0) {
                 me.client;
@@ -137,15 +154,12 @@ Deploy.prototype.applyMigrations = function (direction) {
                     var filename = files[file];
                     var filepath = _config.migrationFolder + '/' + filename;
                     var parser = new migrationParser(filepath, me.client);
-                    parser.on('ready', function (_do, _undo, filename) {
+                    parser.on('ready', function () {
                         filesRemaining--;
-                        fileData[filename] = {
-                            'do' : _do,
-                            'undo' : _undo 
-                        };
+                        parsedMigrations[basename(this.file)] = this;
                         if (filesRemaining === 0) {
-                            var orderedMigrations = _orderMigrations (files, fileData);
-                            delete files, fileData; // Not needed anylonger
+                            var orderedMigrations = _orderMigrations (files, parsedMigrations);
+                            delete files, parsedMigrations; // Not needed anylonger
                             
                             // Here is where the migration really takes place 
                             me.changelog.apply(orderedMigrations, direction);
