@@ -145,7 +145,7 @@ Deploy.prototype.applyMigrations = function () {
             var parsedMigrations = {};
             console.log('* Number of migration scripts to apply:', filesRemaining);
             if (filesRemaining === 0) {
-//                me.client;
+//                me.client; // TODO : what is this ?
             }
 
             for (var file in files) {
