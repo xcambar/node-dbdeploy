@@ -1,28 +1,32 @@
 {
-  "name": "dbdeploy",
-  "description": "A port of dbdeploy (data migration tool) in Javascript for Node.js.",
-  "author": "Xavier Cambar xavier.cambar@lecoffre.net",
-  "maintainers": [
-    {
-      "name": "Xavier Cambar",
-      "web": "https://github.com/xcambar"
+    "name":"dbdeploy",
+    "description":"A port of dbdeploy (data migration tool) in Javascript for Node.js.",
+    "author":"Xavier Cambar xavier.cambar@lecoffre.net",
+    "maintainers":[
+        {
+            "name":"Xavier Cambar",
+            "web":"https://github.com/xcambar"
+        }
+    ],
+    "version":"0.7.0",
+    "repository":{
+        "type":"git",
+        "url":"http://github.com/xcambar/node-dbdeploy"
+    },
+    "bugs":{
+        "web":"https://github.com/xcambar/node-dbdeploy/issues"
+    },
+    "main":"bin/dbdeploy",
+    "bin":{
+        "dbdeploy":"bin/dbdeploy"
+    },
+    "licenses":[
+        {
+            "type":"MIT",
+            "url":"https://raw.github.com/xcambar/node-dbdeploy/master/LICENSE"
+        }
+    ],
+    "dependencies":{
+        "commander":"~1.1.1"
     }
-  ],
-  "version": "0.7.0",
-  "repository": {
-    "type": "git",
-    "url": "http://github.com/xcambar/node-dbdeploy"
-  },
-  "bugs": {
-    "web": "https://github.com/xcambar/node-dbdeploy/issues"
-  },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://raw.github.com/xcambar/node-dbdeploy/master/LICENSE"
-    }
-  ],
-  "dependencies": {
-    "commander": "~1.1.1"
-  }
 }
