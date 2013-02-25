@@ -7,20 +7,20 @@ var util = require('util'),
 
 // The config used in common by the adapter and the deploy tool
 var _config = {
-    user: 'postgres',
-    password: null,
-    database: 'postgres',
-    migrationFolder: process.env['PWD'] + '/migrations',
-    adapter: null
+    user:'postgres',
+    password:null,
+    database:'postgres',
+    migrationFolder:process.env['PWD'] + '/migrations',
+    adapter:null
 };
 
 /**
- * Constructor of the main class of the deploy library 
+ * Constructor of the main class of the deploy library
  * Prepares the basic event listeners
  **/
-var Deploy = function() {
+var Deploy = function () {
     events.EventEmitter.call(this);
-}
+};
 
 util.inherits(Deploy, events.EventEmitter);
 
@@ -37,7 +37,7 @@ Deploy.prototype.config = function (config) {
                 if (config.hasOwnProperty(idx)) {
                     _config[idx] = config[idx];
                 }
-            };
+            }
         }
     }
     return _config;
@@ -48,12 +48,12 @@ Deploy.prototype.changelog = null;
 Deploy.prototype.do = function () {
     this.direction = 'do';
     this.run();
-}
+};
 
 Deploy.prototype.undo = function () {
     this.direction = 'undo';
     this.run();
-}
+};
 
 /**
  * Runs the db migration workflow:
@@ -61,14 +61,14 @@ Deploy.prototype.undo = function () {
  *  *) Creates it if it doesn't exist
  *  *) Discovers the latest migration applied
  *  *) applies the subsequent migrations
- * 
+ *
  **/
 Deploy.prototype.run = function () {
     var me = this;
     if (!_config.adapter) {
         throw new Error('No adapter specified. Can not run.');
     }
-    _config.adapter.connect(_config, function(err, client) {
+    _config.adapter.connect(_config, function (err, client) {
         if (err) {
             me.emit('error', err);
         } else {
@@ -82,11 +82,11 @@ Deploy.prototype.run = function () {
                     console.log('* \'changelog\' table not present.');
                     me.changelog.on('built', function () {
                         me.applyMigrations();
-                    })
+                    });
                     me.changelog.build();
                 }
             });
-            me.changelog.checkTable();         
+            me.changelog.checkTable();
         }
     });
 };
@@ -94,7 +94,6 @@ Deploy.prototype.run = function () {
 /**
  * Applies the migrations in the specified direction.
  * @TODO Implement the downgrade process. Currently, the direction is not taken into account
- * @param direction string 'up' or 'down'
  **/
 Deploy.prototype.applyMigrations = function () {
     var direction = this.direction,
@@ -106,33 +105,33 @@ Deploy.prototype.applyMigrations = function () {
             return files
                 .sort()
                 .filter(function () {
-                    var _mustBeApplied = (latestMigrationFile === null);
-                    return function (name) {
-                        if (latestMigrationFile === name) {
-                            _mustBeApplied = !_mustBeApplied;
-                            return false;
-                        }
-                        return _mustBeApplied;
-                    };
-                    }()
-                );
+                var _mustBeApplied = (latestMigrationFile === null);
+                return function (name) {
+                    if (latestMigrationFile === name) {
+                        _mustBeApplied = !_mustBeApplied;
+                        return false;
+                    }
+                    return _mustBeApplied;
+                };
+            }()
+            );
         } else {
             return files.sort().reverse().filter(function (name) {
                 return latestMigrationFile === name;
             });
         }
     };
-    
+
     // Orders the migrations statements to the specified order,
     // so they can be applied in the right place, at the right time
     var _orderMigrations = function (order, unorderedObj) {
-        var orderedObj = new Array();
-        for (var i=0; i < order.length; i++) {
+        var orderedObj = [];
+        for (var i = 0; i < order.length; i++) {
             orderedObj.push(unorderedObj[order[i]]);
         }
         return orderedObj;
     };
-    
+
     // Returns a function that, once run, will return the statements
     // to be applied
     var _retrieveStatements = function (latestMigrationFile) {
@@ -142,15 +141,16 @@ Deploy.prototype.applyMigrations = function () {
             }
             files = _getApplicableMigrations(files, latestMigrationFile);
 
-            filesRemaining = files.length;
+            var filesRemaining = files.length;
             var parsedMigrations = {};
             console.log('* Number of migration scripts to apply:', filesRemaining);
             if (filesRemaining === 0) {
-                me.client;
+//                me.client; // TODO : what is this ?
             }
-            for (file in files) {
+
+            for (var file in files) {
                 if (files.hasOwnProperty(file)) {
-                    
+
                     var filename = files[file];
                     var filepath = _config.migrationFolder + '/' + filename;
                     var parser = new migrationParser(filepath, me.client);
@@ -158,10 +158,9 @@ Deploy.prototype.applyMigrations = function () {
                         filesRemaining--;
                         parsedMigrations[basename(this.file)] = this;
                         if (filesRemaining === 0) {
-                            var orderedMigrations = _orderMigrations (files, parsedMigrations);
-                            delete files, parsedMigrations; // Not needed anylonger
-                            
-                            // Here is where the migration really takes place 
+                            var orderedMigrations = _orderMigrations(files, parsedMigrations);
+
+                            // Here is where the migration really takes place
                             me.changelog.apply(orderedMigrations, direction);
                         }
                     });
@@ -169,7 +168,7 @@ Deploy.prototype.applyMigrations = function () {
             }
         }
     };
-    this.changelog.getLatestMigration(function(latestMigrationFile) {
+    this.changelog.getLatestMigration(function (latestMigrationFile) {
         console.log('* Latest file applied:', latestMigrationFile || 'none');
         fs.readdir(_config.migrationFolder, _retrieveStatements(latestMigrationFile));
     });

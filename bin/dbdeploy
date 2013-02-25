@@ -1,49 +1,43 @@
 #!/usr/bin/env node
 
 var deploy = require('dbdeploy');
-try {
-    var program = require('commander');
-} catch (err) {
-    console.error(err.message);
-    process.exit(255);
-}
-
+var program = require('commander');
 
 program
-  .version('0.7')
-  .option('-d, --db [db]', 'Database name', null)
-  .option('-U, --user [user]', 'Database user', null)
-  .option('-P, --password [pwd]', 'Password to access the database', null)
-  .option('-a, --adapter [adapter]', 'Database adapter/module to load', 'pg')
-  .option('-f, --migration-folder [folder]', 'Location of the folder containing the migration files', 'migrations')
-  .option(' --undo', 'Undo the latest migration')
-  .option('-s, --silent', 'Disable output')
-  .parse(process.argv);
+    .version('0.7')
+    .option('-d, --db [db]', 'Database name', null)
+    .option('-U, --user [user]', 'Database user', null)
+    .option('-P, --password [pwd]', 'Password to access the database', null)
+    .option('-a, --adapter [adapter]', 'Database adapter/module to load', 'pg')
+    .option('-f, --migration-folder [folder]', 'Location of the folder containing the migration files', 'migrations')
+    .option(' --undo', 'Undo the latest migration')
+    .option('-s, --silent', 'Disable output')
+    .parse(process.argv);
 
-if (program.db) deploy.config({database: program.db});
-if (program.user) deploy.config({user: program.user});
-if (program.password) deploy.config({password: program.password});
+if (program.db) deploy.config({database:program.db});
+if (program.user) deploy.config({user:program.user});
+if (program.password) deploy.config({password:program.password});
 if (program.adapter) {
     try {
         var _adapter = require(program.adapter);
     } catch (e) {
         console.error(e.message);
     }
-    deploy.config({adapter : _adapter});
+    deploy.config({adapter:_adapter});
 }
 if (program.migrationFolder) {
     var path = new String(program.migrationFolder);
     if (!path.match(/^\//)) {
         path = process.cwd() + '/' + path;
     }
-    deploy.config({migrationFolder: path});
+    deploy.config({migrationFolder:path});
 }
 
 if (program.silent) {
     process.stdout = require('fs').createWriteStream('/dev/null');
 }
 
-deploy.on('error', function(err) {
+deploy.on('error', function (err) {
     console.err('An error occured: ', err.toString());
     process.exit(255);
 })
@@ -51,5 +45,5 @@ deploy.on('error', function(err) {
 if (program.undo) {
     deploy.undo();
 } else {
-    deploy.do();    
+    deploy.do();
 }
